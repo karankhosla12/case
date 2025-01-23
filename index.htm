@@ -17,7 +17,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        .output {
+        .output, .additional-fields {
             margin-top: 20px;
             padding: 10px;
             border: 1px solid #ccc;
@@ -43,6 +43,7 @@
         </form>
 
         <div class="output" id="output"></div>
+        <div class="additional-fields" id="additionalFields"></div>
     </div>
 
     <script>
@@ -68,6 +69,34 @@
             query({"inputs": description, "parameters": {"candidate_labels": ["Login", "Billing", "inmail", "Ads", "Talent Solutions"]}})
                 .then(response => {
                     document.getElementById('output').innerText = JSON.stringify(response, null, 2);
+                    const highestLabel = response.labels[response.scores.indexOf(Math.max(...response.scores))];
+                    
+                    let additionalFieldsHtml = `<label for='category'>Case Category:</label>
+                                              <input type='text' id='category' value='${highestLabel}'><br><br>`;
+                    
+                    if (highestLabel === "Billing") {
+                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text'><br>
+                                                <label>Credit card number:</label><input type='text'><br>
+                                                <label>Products billed for:</label><input type='text'><br>
+                                                <p>Filling these help us resolve your cases faster</p>`;
+                    } else if (highestLabel === "Ads") {
+                        additionalFieldsHtml += `<label>Ads account ID:</label><input type='text'><br>
+                                                <label>LinkedIn profile URL:</label><input type='text'><br>
+                                                <label>Campaign Used:</label><input type='text'><br>
+                                                <p>Filling these help us resolve your cases faster</p>`;
+                    } else if (highestLabel === "Talent Solutions") {
+                        additionalFieldsHtml += `<label>Recruiter ID:</label><input type='text'><br>
+                                                <label>LinkedIn profile URL:</label><input type='text'><br>
+                                                <label>Project ID:</label><input type='text'><br>
+                                                <p>Filling these help us resolve your cases faster</p>`;
+                    } else if (highestLabel === "inmail") {
+                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text'><br>
+                                                <label>URL of screenshot of the error:</label><input type='text'><br>
+                                                <label>Time of the error:</label><input type='text'><br>
+                                                <p>Filling these help us resolve your cases faster</p>`;
+                    }
+                    
+                    document.getElementById('additionalFields').innerHTML = additionalFieldsHtml;
                 })
                 .catch(error => {
                     document.getElementById('output').innerText = "Error: " + error.message;
