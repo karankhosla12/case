@@ -24,6 +24,28 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
+        .dialog-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            display: none;
+        }
+        .dialog-box button {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -44,6 +66,14 @@
 
         <div class="output" id="output"></div>
         <div class="additional-fields" id="additionalFields"></div>
+        <button id="submitDataBtn" style="display:none;">Submit Data</button>
+    </div>
+
+    <!-- Dialog Box -->
+    <div id="dialogBox" class="dialog-box">
+        <h3>Query Results:</h3>
+        <div id="dialogContent"></div>
+        <button id="closeDialogBtn">Close</button>
     </div>
 
     <script>
@@ -51,6 +81,7 @@
             event.preventDefault();
             const description = document.getElementById('description').value;
             
+            // Query the Hugging Face API
             async function query(data) {
                 const response = await fetch(
                     "https://api-inference.huggingface.co/models/MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
@@ -66,41 +97,111 @@
                 return await response.json();
             }
             
+            // Call the Hugging Face API to get labels
             query({"inputs": description, "parameters": {"candidate_labels": ["Login", "Billing", "inmail", "Ads", "Talent Solutions"]}})
                 .then(response => {
                     document.getElementById('output').innerText = JSON.stringify(response, null, 2);
                     const highestLabel = response.labels[response.scores.indexOf(Math.max(...response.scores))];
                     
                     let additionalFieldsHtml = `<label for='category'>Case Category:</label>
-                                              <input type='text' id='category' value='${highestLabel}'><br><br>`;
+                                              <input type='text' id='category' value='${highestLabel}' readonly><br><br>`;
                     
                     if (highestLabel === "Billing") {
-                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text'><br>
-                                                <label>Credit card number:</label><input type='text'><br>
-                                                <label>Products billed for:</label><input type='text'><br>
-                                                <p>Filling these help us resolve your cases faster</p>`;
+                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text' id='linkedinProfile'><br>
+                                                <label>Credit card number:</label><input type='text' id='creditCardNumber'><br>
+                                                <label>Products billed for:</label><input type='text' id='productsBilled'><br>
+                                                <p>Filling these helps us resolve your cases faster</p>`;
                     } else if (highestLabel === "Ads") {
-                        additionalFieldsHtml += `<label>Ads account ID:</label><input type='text'><br>
-                                                <label>LinkedIn profile URL:</label><input type='text'><br>
-                                                <label>Campaign Used:</label><input type='text'><br>
-                                                <p>Filling these help us resolve your cases faster</p>`;
+                        additionalFieldsHtml += `<label>Ads account ID:</label><input type='text' id='adsAccountId'><br>
+                                                <label>LinkedIn profile URL:</label><input type='text' id='adsLinkedinProfile'><br>
+                                                <label>Campaign Used:</label><input type='text' id='campaignUsed'><br>
+                                                <p>Filling these helps us resolve your cases faster</p>`;
                     } else if (highestLabel === "Talent Solutions") {
-                        additionalFieldsHtml += `<label>Recruiter ID:</label><input type='text'><br>
-                                                <label>LinkedIn profile URL:</label><input type='text'><br>
-                                                <label>Project ID:</label><input type='text'><br>
-                                                <p>Filling these help us resolve your cases faster</p>`;
+                        additionalFieldsHtml += `<label>Recruiter ID:</label><input type='text' id='recruiterId'><br>
+                                                <label>LinkedIn profile URL:</label><input type='text' id='talentSolutionsLinkedinProfile'><br>
+                                                <label>Project ID:</label><input type='text' id='projectId'><br>
+                                                <p>Filling these helps us resolve your cases faster</p>`;
                     } else if (highestLabel === "inmail") {
-                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text'><br>
-                                                <label>URL of screenshot of the error:</label><input type='text'><br>
-                                                <label>Time of the error:</label><input type='text'><br>
-                                                <p>Filling these help us resolve your cases faster</p>`;
+                        additionalFieldsHtml += `<label>LinkedIn profile URL:</label><input type='text' id='inmailLinkedinProfile'><br>
+                                                <label>URL of screenshot of the error:</label><input type='text' id='errorScreenshotUrl'><br>
+                                                <label>Time of the error:</label><input type='text' id='errorTime'><br>
+                                                <p>Filling these helps us resolve your cases faster</p>`;
                     }
                     
+                    // Insert the additional fields and make the Submit Data button visible
                     document.getElementById('additionalFields').innerHTML = additionalFieldsHtml;
+                    document.getElementById('submitDataBtn').style.display = 'inline-block';
                 })
                 .catch(error => {
                     document.getElementById('output').innerText = "Error: " + error.message;
                 });
+        });
+
+        // Handle the Submit Data button click event
+        document.getElementById('submitDataBtn').addEventListener('click', async function() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const description = document.getElementById('description').value;
+            const caseCategory = document.getElementById('category').value;
+            const solvedBy = "";  // Add this field if necessary
+            const caseOwner = "";  // Add this field if necessary
+
+            const additionalData = {
+                linkedinProfile: document.getElementById('linkedinProfile')?.value || '',
+                creditCardNumber: document.getElementById('creditCardNumber')?.value || '',
+                productsBilled: document.getElementById('productsBilled')?.value || '',
+                adsAccountId: document.getElementById('adsAccountId')?.value || '',
+                campaignUsed: document.getElementById('campaignUsed')?.value || '',
+                recruiterId: document.getElementById('recruiterId')?.value || '',
+                projectId: document.getElementById('projectId')?.value || '',
+                errorScreenshotUrl: document.getElementById('errorScreenshotUrl')?.value || '',
+                errorTime: document.getElementById('errorTime')?.value || '',
+            };
+
+            const payload = {
+                name,
+                email,
+                description,
+                solvedBy,
+                caseOwner,
+                caseCategory,
+                ...additionalData,
+            };
+
+            try {
+                const response = await fetch("https://xlr8.karankhosla99.workers.dev", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    document.getElementById('output').innerText = "Case submitted successfully!";
+                    
+                    // Wait for 5 seconds before calling the GET query
+                    setTimeout(async () => {
+                        // Perform GET request to fetch results
+                        const getResponse = await fetch(`https://xlr8.karankhosla99.workers.dev?caseCategory=${caseCategory}`);
+                        const getResult = await getResponse.json();
+
+                        // Show the results in a dialog box
+                        document.getElementById('dialogContent').innerText = JSON.stringify(getResult, null, 2);
+                        document.getElementById('dialogBox').style.display = 'block';
+                    }, 5000);
+                } else {
+                    document.getElementById('output').innerText = "Error: " + result.error;
+                }
+            } catch (error) {
+                document.getElementById('output').innerText = "Error: " + error.message;
+            }
+        });
+
+        // Close the dialog box
+        document.getElementById('closeDialogBtn').addEventListener('click', () => {
+            document.getElementById('dialogBox').style.display = 'none';
         });
     </script>
 </body>
