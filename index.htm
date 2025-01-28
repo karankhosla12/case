@@ -243,17 +243,30 @@
                 const result = await response.json();
                 if (response.ok) {
                     document.getElementById('output').innerText = "Case submitted successfully!";
+// Wait for 5 seconds before calling the GET query
+setTimeout(async () => {
+    // Perform GET request to fetch results
+    const getResponse = await fetch(`https://xlr8.karankhosla99.workers.dev?caseCategory=${caseCategory}`);
+    const getResult = await getResponse.json();
 
-                    // Wait for 5 seconds before calling the GET query
-                    setTimeout(async () => {
-                        // Perform GET request to fetch results
-                        const getResponse = await fetch(`https://xlr8.karankhosla99.workers.dev?caseCategory=${caseCategory}`);
-                        const getResult = await getResponse.json();
+    // Parse the API response into a human-readable format
+    const readableResult = `
+        The top solver for cases in the category "${caseCategory}" is "${getResult.topSolvedBy.name}", 
+        who solved ${getResult.topSolvedBy.count} cases, accounting for ${getResult.topSolvedBy.percentage} of the total cases.
 
-                        // Show the results in a dialog box
-                        document.getElementById('dialogContent').innerText = JSON.stringify(getResult, null, 2);
-                        document.getElementById('dialogBox').style.display = 'block';
-                    }, 5000);
+        The top 3 case owners in this category are:
+        1. ${getResult.topCaseOwners[0].caseOwner || "Unknown"} with ${getResult.topCaseOwners[0].caseCount} cases.
+        2. ${getResult.topCaseOwners[1].caseOwner || "Unknown"} with ${getResult.topCaseOwners[1].caseCount} cases.
+        3. ${getResult.topCaseOwners[2].caseOwner || "Unknown"} with ${getResult.topCaseOwners[2].caseCount} cases.
+
+        A total of ${getResult.totalCases} cases were recorded in the category "${caseCategory}".
+    `;
+
+    // Display the results in the dialog box
+    document.getElementById('dialogContent').innerText = readableResult.trim();
+    document.getElementById('dialogBox').style.display = 'block';
+}, 5000);
+
                 } else {
                     document.getElementById('output').innerText = "Error: " + result.error;
                 }
