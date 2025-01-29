@@ -251,15 +251,18 @@ setTimeout(async () => {
 
     // Parse the API response into a human-readable format
     const readableResult = `
-        The top solver for cases in the category "${caseCategory}" is "${getResult.topSolvedBy.name}", 
+        The top solver for cases in the category "${caseCategory}" is "${getResult.topSolvedBy.name}" in the last 24 hours, 
         who solved ${getResult.topSolvedBy.count} cases, accounting for ${getResult.topSolvedBy.percentage} of the total cases.
 
-        The top 3 case owners in this category are:
+        The top 3 case owners in 24 hours in this category are:
         1. ${getResult.topCaseOwners[0].caseOwner || "Unknown"} with ${getResult.topCaseOwners[0].caseCount} cases.
         2. ${getResult.topCaseOwners[1].caseOwner || "Unknown"} with ${getResult.topCaseOwners[1].caseCount} cases.
         3. ${getResult.topCaseOwners[2].caseOwner || "Unknown"} with ${getResult.topCaseOwners[2].caseCount} cases.
 
         A total of ${getResult.totalCases} cases were recorded in the category "${caseCategory}".
+        This is a trending issue. 
+    
+    
     `;
 
     // Display the results in the dialog box
